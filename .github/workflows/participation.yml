@@ -1,0 +1,20 @@
+name: Participation Tracker
+
+on:
+  pull_request:
+    types: [opened]
+  issues:
+    types: [opened]
+  discussion:
+    types: [created]
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            console.log("User interaction detected.");
+            // Note: The logic to actually update a leaderboard is currently empty.
+            // It requires custom JavaScript here to verify user data.
