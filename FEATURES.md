@@ -1,0 +1,43 @@
+- Login - For User authentication
+
+## Login as Employee
+
+- Profile
+    - Username
+    - User ranking
+    - User progress (Personal dashboard)
+    - Win rate
+    - Disclaimer - this will be proof as a reliable worker
+    - Day Streak
+    - Skill Category breakdown
+- CTF
+    - The Challenges for employee will be
+    - **AI-generated micro-scenarios** (1–3 sentences) aligned to specific Basic GenAI skills, such as: Prompt structuring, Summarization, Rewriting, Extracting information
+    - **Employee response module supporting:** Text responses, Multiple-choice answers [Based on difficulty]
+    - **AI evaluation engine** using clear rubrics (e.g., relevance, accuracy, reasoning clarity, safety considerations).
+    - Put [hint] to encourage learning
+    - Generate adaptive difficulty [Easy, Normal, Hard]
+    - Provide personalized feedback after x number of challenges and recommendation steps.
+- Add New Personalized Goals
+    - Insert a word that generate actionable task
+    - Suggest next step learning, eg: you have completed AWS Cloud why not go for cloud advance
+
+## Login as Admin
+
+- Dashboard
+    - Track Pre and Post Training
+    - Skill Heatmap for each individu
+- Review Employee
+    
+    Could review the challenges and the answers
+    
+- Could Create Job
+    - Insert Job  eg:<Software engineer> → Loading → it generates sets of Basic GenAI skills. relates to Soft engineer and will be useful
+
+Not sure its plausible or not
+
+**Stretch Features (Advanced)**
+
+- **Team or department-level insights** (aggregated heatmaps, average progression).
+- **Trend analysis** (skill growth over time).
+- **Competency prediction model** (identify who may need reinforcement before issues arise).
