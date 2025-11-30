@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Terminal, Cpu, Trophy, Activity, Flame, FileText, User, LogOut, Plus, Trash2, Sparkles } from 'lucide-react';
+import { Terminal, Cpu, Activity, LogOut, Plus, Trash2, Sparkles } from 'lucide-react';
 import { ChallengeCard } from '../components/ChallengeCard';
 import { ChallengeModal } from '../components/ChallengeModal';
 
@@ -13,7 +13,7 @@ export const EmployeeDashboard: React.FC = () => {
     const [selectedChallenge, setSelectedChallenge] = useState<any | null>(null);
     const [generating, setGenerating] = useState(false);
     const [keyword, setKeyword] = useState('');
-    const [stats, setStats] = useState({
+    const [stats] = useState({
         ranking: user?.ranking || 0,
         win_rate: user?.win_rate || 0,
         streak: user?.streak || 0,
