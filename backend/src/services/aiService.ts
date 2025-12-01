@@ -20,17 +20,19 @@ const MODELS = {
 // Helper to invoke model using Converse API
 async function invokeModel(modelId: string, prompt: string, systemText?: string) {
     try {
+        console.log(`DEBUG: Invoking model ${modelId} in region ${region}`);
+        // Prepend system prompt to user prompt if provided, as some models (like Titan Lite) don't support system messages
+        const finalPrompt = systemText ? `System: ${systemText}\n\nUser: ${prompt}` : prompt;
+
         const messages = [{
             role: "user" as const,
-            content: [{ text: prompt }]
+            content: [{ text: finalPrompt }]
         }];
 
-        const system = systemText ? [{ text: systemText }] : undefined;
-
+        // Remove system parameter from command config
         const command = new ConverseCommand({
             modelId,
             messages,
-            system,
             inferenceConfig: {
                 maxTokens: 1024,
                 temperature: 0.7,
@@ -44,8 +46,11 @@ async function invokeModel(modelId: string, prompt: string, systemText?: string)
         }
         return "";
 
-    } catch (error) {
+    } catch (error: any) {
         console.error(`Error invoking model ${modelId}:`, error);
+        if (error.name) console.error(`Error Name: ${error.name}`);
+        if (error.message) console.error(`Error Message: ${error.message}`);
+        if (error.$metadata) console.error(`Error Metadata:`, error.$metadata);
         return null; // Return null on failure so we can handle it
     }
 }

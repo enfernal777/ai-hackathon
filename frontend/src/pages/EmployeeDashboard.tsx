@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Terminal, Cpu, Trophy, Activity, Flame, FileText, User, LogOut, Plus, Trash2, Sparkles } from 'lucide-react';
+import { Terminal, Cpu, Activity, LogOut, Plus, Trash2, Sparkles } from 'lucide-react';
 import { ChallengeCard } from '../components/ChallengeCard';
 import { ChallengeModal } from '../components/ChallengeModal';
+import { GoalSetter } from '../components/GoalSetter';
 
 export const EmployeeDashboard: React.FC = () => {
     const { user, logout } = useAuth();
@@ -13,7 +14,7 @@ export const EmployeeDashboard: React.FC = () => {
     const [selectedChallenge, setSelectedChallenge] = useState<any | null>(null);
     const [generating, setGenerating] = useState(false);
     const [keyword, setKeyword] = useState('');
-    const [stats, setStats] = useState({
+    const [stats] = useState({
         ranking: user?.ranking || 0,
         win_rate: user?.win_rate || 0,
         streak: user?.streak || 0,
@@ -151,7 +152,7 @@ export const EmployeeDashboard: React.FC = () => {
                         <div className="bg-[#111] border border-white/5 rounded-lg p-6">
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-lg font-bold text-white tracking-wider flex items-center gap-2">
-                                    <span className="text-pink-400">◎</span> PERSONALIZED GOALS
+                                    <span className="text-pink-400">◎</span> PERSONALIZED QUESTS
                                 </h2>
                             </div>
 
@@ -200,6 +201,11 @@ export const EmployeeDashboard: React.FC = () => {
 
                     {/* Right Column: Sidebar (1 col) */}
                     <div className="space-y-6 sticky top-24 self-start">
+
+                        {/* Goal Setter */}
+                        <div className="h-[400px]">
+                            <GoalSetter />
+                        </div>
 
                         {/* Recent Activity */}
                         <div className="bg-[#111] border border-white/5 rounded-lg p-6">

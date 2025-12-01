@@ -6,6 +6,7 @@ AWS_REGION=
 database_password=
 SUPABASE_URL=
 SUPABASE_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
 
 # For Front and Backend
 PORT=
