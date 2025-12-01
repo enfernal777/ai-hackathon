@@ -1,9 +1,9 @@
-import { supabase } from './src/config/database';
+import { supabase } from '../src/config/database';
 import dotenv from 'dotenv';
 import path from 'path';
 
 // Ensure env is loaded (if running standalone)
-dotenv.config({ path: path.join(__dirname, '../.env') });
+dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 async function testDatabaseFeatures() {
     console.log('🚀 Starting Database Feature Verification...\n');

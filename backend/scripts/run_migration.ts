@@ -4,7 +4,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 
 // Load .env from root directory
-const envPath = path.join(__dirname, '../.env');
+const envPath = path.join(__dirname, '../../.env');
 console.log('Loading .env from:', envPath);
 
 const result = dotenv.config({ path: envPath });
@@ -16,7 +16,7 @@ if (result.error) {
 
 async function runMigration() {
     console.log('Loading migration file...');
-    const migrationPath = path.join(__dirname, 'migration_jobs_and_departments.sql');
+    const migrationPath = path.join(__dirname, '../migration_jobs_and_departments.sql');
     const migrationSql = fs.readFileSync(migrationPath, 'utf8');
 
     console.log('Connecting to database...');

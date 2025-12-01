@@ -135,8 +135,12 @@ export const evaluateResponse = async (scenarioId: string, userResponse: string,
 
         for (const text of results) {
             try {
-                const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-                const evaluation = JSON.parse(cleanText);
+                console.log('DEBUG: Raw model response:', text);
+                // Try to extract JSON object using regex
+                const jsonMatch = text.match(/\{[\s\S]*\}/);
+                const jsonStr = jsonMatch ? jsonMatch[0] : text.replace(/```json/g, '').replace(/```/g, '').trim();
+
+                const evaluation = JSON.parse(jsonStr);
 
                 if (typeof evaluation.score === 'number') {
                     totalScore += evaluation.score;
@@ -149,6 +153,7 @@ export const evaluateResponse = async (scenarioId: string, userResponse: string,
         }
 
         if (validCount === 0) {
+            console.error('All models failed to produce valid JSON.');
             throw new Error("Failed to parse evaluation from any model.");
         }
 
