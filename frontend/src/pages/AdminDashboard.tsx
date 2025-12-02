@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Users, Activity, Trophy, Search, Filter, Download, Plus, LogOut, Shield, Terminal, AlertCircle, Target, Briefcase } from 'lucide-react';
+import { Users, Activity, Trophy, Search, Filter, LogOut, Shield, Terminal, AlertCircle, Target, Briefcase } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { EmployeeDetailsModal } from '../components/EmployeeDetailsModal';
 import { JobAnalysisModal } from '../components/JobAnalysisModal';
@@ -31,7 +31,7 @@ export const AdminDashboard: React.FC = () => {
 
                 // Fetch Analytics
                 if (token) {
-                    const analyticsResponse = await fetch('http://localhost:3001/api/analytics/overview', {
+                    const analyticsResponse = await fetch('/api/analytics/overview', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     const analyticsData = await analyticsResponse.json();
@@ -49,7 +49,7 @@ export const AdminDashboard: React.FC = () => {
     const handleViewEmployee = async (id: string) => {
         try {
             // Fetch detailed stats
-            const response = await fetch(`http://localhost:3001/api/employees/${id}/details`, {
+            const response = await fetch(`/api/employees/${id}/details`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -109,14 +109,6 @@ export const AdminDashboard: React.FC = () => {
                         >
                             <Briefcase size={16} />
                             JOB_ANALYSIS
-                        </button>
-                        <button className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-white/10 hover:border-cyan-500/50 text-cyan-400 text-sm rounded transition-all">
-                            <Download size={16} />
-                            EXPORT_LOGS
-                        </button>
-                        <button className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 border border-cyan-500/50 hover:bg-cyan-500/20 text-cyan-400 text-sm rounded transition-all shadow-[0_0_10px_rgba(6,182,212,0.1)]">
-                            <Plus size={16} />
-                            INVITE_OPERATIVE
                         </button>
                     </div>
                 </div>

@@ -134,23 +134,75 @@ export const getEmployeeDetails = async (req: AuthRequest, res: Response): Promi
             return;
         }
 
-        // Fetch recent assessments
+        // Fetch all assessments for analytics
         const { data: assessments, error: assessError } = await supabase
             .from('assessments')
             .select('id, score, feedback, created_at, difficulty, scenario:scenarios(title, skill)')
             .eq('user_id', id)
-            .order('created_at', { ascending: false })
-            .limit(10);
+            .order('created_at', { ascending: true }); // Order by date ascending for trend analysis
 
         if (assessError) {
             console.error('Error fetching assessments:', assessError);
         }
 
+        const allAssessments = assessments || [];
+
+        // 1. Calculate Skill Stats (for Radar Chart)
+        const skillMap = new Map<string, { total: number; count: number }>();
+        allAssessments.forEach((a: any) => {
+            const skill = a.scenario?.skill || 'Unknown';
+            const current = skillMap.get(skill) || { total: 0, count: 0 };
+            skillMap.set(skill, {
+                total: current.total + (a.score || 0),
+                count: current.count + 1
+            });
+        });
+
+        const skillStats = Array.from(skillMap.entries()).map(([subject, data]) => ({
+            subject,
+            A: Math.round(data.total / data.count), // Average score
+            fullMark: 100
+        }));
+
+        // 2. Calculate Progress Data (for Line Chart)
+        // Group by date to avoid too many points if multiple assessments per day
+        const progressMap = new Map<string, { total: number; count: number }>();
+        allAssessments.forEach((a: any) => {
+            const date = new Date(a.created_at).toLocaleDateString();
+            const current = progressMap.get(date) || { total: 0, count: 0 };
+            progressMap.set(date, {
+                total: current.total + (a.score || 0),
+                count: current.count + 1
+            });
+        });
+
+        const progressData = Array.from(progressMap.entries()).map(([date, data]) => ({
+            date,
+            score: Math.round(data.total / data.count)
+        }));
+
+        // 3. Pre vs Current Stats
+        // Assuming first 3 are "Pre-training" and last 3 are "Current"
+        const preTrainingAvg = allAssessments.length > 0
+            ? allAssessments.slice(0, 3).reduce((sum: number, a: any) => sum + (a.score || 0), 0) / Math.min(allAssessments.length, 3)
+            : 0;
+
+        const currentAvg = allAssessments.length > 0
+            ? allAssessments.slice(-3).reduce((sum: number, a: any) => sum + (a.score || 0), 0) / Math.min(allAssessments.length, 3)
+            : 0;
+
+
         res.status(200).json({
             success: true,
             employee: {
                 ...employee,
-                assessments: assessments || []
+                assessments: allAssessments.reverse().slice(0, 10), // Return only recent 10 for the list view, reversed back to desc
+                analytics: {
+                    skillStats,
+                    progressData,
+                    preTrainingAvg: Math.round(preTrainingAvg),
+                    currentAvg: Math.round(currentAvg)
+                }
             }
         });
 
