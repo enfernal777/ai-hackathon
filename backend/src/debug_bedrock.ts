@@ -31,7 +31,15 @@ async function test() {
         console.log("SUCCESS: Bedrock is working.");
     } catch (error: any) {
         console.error("ERROR: Bedrock invocation failed.");
-        console.error(error);
+        console.error("Error Name:", error.name);
+        console.error("Error Message:", error.message);
+        if (error.$metadata) console.error("Metadata:", JSON.stringify(error.$metadata, null, 2));
+
+        console.log("--- Environment Check ---");
+        console.log("AWS_ACCESS_KEY_ID Set:", !!process.env.AWS_ACCESS_KEY_ID);
+        console.log("AWS_SECRET_ACCESS_KEY Set:", !!process.env.AWS_SECRET_ACCESS_KEY);
+        console.log("AWS_SESSION_TOKEN Set:", !!process.env.AWS_SESSION_TOKEN);
+        console.log("AWS_REGION:", process.env.AWS_REGION);
     }
 }
 

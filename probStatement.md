@@ -137,7 +137,7 @@ A5. Yes — the goal is to shift from manual reviews to automated skill assessme
 - AI Model: Amazon Titan Text Express (verified working)
 - Backend: Node.js/TypeScript
 - Frontend: React
-- Authentication: AWS SSO (auto-refresh configured)
+- Authentication: AWS SSO 
 
 📁 **Key Resources:**
 - [WORKING_MODELS.md](WORKING_MODELS.md) - List of accessible AI models

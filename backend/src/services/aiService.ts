@@ -3,9 +3,15 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 // Load environment variables
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+const envPath = path.resolve(__dirname, '../../../.env');
+console.log(`[aiService] Loading .env from: ${envPath}`);
+dotenv.config({ path: envPath });
 
-const region = process.env.AWS_REGION || 'us-east-1'; // Default to us-east-1 if not set, but user mentioned eu-central-1 in history
+const region = process.env.AWS_REGION || 'us-east-1';
+console.log(`[aiService] AWS_REGION: ${region}`);
+console.log(`[aiService] AWS_PROFILE: ${process.env.AWS_PROFILE}`);
+console.log(`[aiService] AWS_ACCESS_KEY_ID: ${process.env.AWS_ACCESS_KEY_ID ? 'Set' : 'Not Set'}`);
+
 const client = new BedrockRuntimeClient({ region });
 
 const MODELS = {

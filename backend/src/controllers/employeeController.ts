@@ -108,3 +108,54 @@ export const getAllEmployees = async (req: AuthRequest, res: Response): Promise<
         });
     }
 };
+
+/**
+ * Get Employee Details (Admin only)
+ * GET /api/employees/:id/details
+ */
+export const getEmployeeDetails = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user || req.user.role !== 'admin') {
+            res.status(403).json({ success: false, message: 'Access denied. Admin only.' });
+            return;
+        }
+
+        const { id } = req.params;
+
+        // Fetch employee basic info
+        const { data: employee, error: empError } = await supabase
+            .from('employees')
+            .select('id, name, job_title, department, ranking, win_rate, streak')
+            .eq('id', id)
+            .single();
+
+        if (empError || !employee) {
+            res.status(404).json({ success: false, message: 'Employee not found' });
+            return;
+        }
+
+        // Fetch recent assessments
+        const { data: assessments, error: assessError } = await supabase
+            .from('assessments')
+            .select('id, score, feedback, created_at, difficulty, scenario:scenarios(title, skill)')
+            .eq('user_id', id)
+            .order('created_at', { ascending: false })
+            .limit(10);
+
+        if (assessError) {
+            console.error('Error fetching assessments:', assessError);
+        }
+
+        res.status(200).json({
+            success: true,
+            employee: {
+                ...employee,
+                assessments: assessments || []
+            }
+        });
+
+    } catch (error) {
+        console.error('Get employee details error:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+};

@@ -1,12 +1,19 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Users, Activity, Trophy, Search, Filter, Download, Plus, LogOut, Shield, Terminal, AlertCircle, Target } from 'lucide-react';
+import { Users, Activity, Trophy, Search, Filter, Download, Plus, LogOut, Shield, Terminal, AlertCircle, Target, Briefcase } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { EmployeeDetailsModal } from '../components/EmployeeDetailsModal';
+import { JobAnalysisModal } from '../components/JobAnalysisModal';
 
 export const AdminDashboard: React.FC = () => {
-    const { logout } = useAuth();
+    const { logout, token } = useAuth();
     const navigate = useNavigate();
     const [employees, setEmployees] = React.useState<any[]>([]);
+    const [analytics, setAnalytics] = React.useState<any>(null);
+    const [selectedEmployee, setSelectedEmployee] = React.useState<any>(null);
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = React.useState(false);
+    const [isJobModalOpen, setIsJobModalOpen] = React.useState(false);
 
     const handleLogout = () => {
         logout();
@@ -14,18 +21,49 @@ export const AdminDashboard: React.FC = () => {
     };
 
     React.useEffect(() => {
-        const fetchEmployees = async () => {
+        const fetchData = async () => {
             try {
-                const response = await import('../api/employee').then(m => m.employeeAPI.getAllEmployees());
-                if (response.success) {
-                    setEmployees(response.employees);
+                // Fetch Employees
+                const empResponse = await import('../api/employee').then(m => m.employeeAPI.getAllEmployees());
+                if (empResponse.success) {
+                    setEmployees(empResponse.employees);
+                }
+
+                // Fetch Analytics
+                if (token) {
+                    const analyticsResponse = await fetch('http://localhost:3001/api/analytics/overview', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const analyticsData = await analyticsResponse.json();
+                    if (analyticsData.success) {
+                        setAnalytics(analyticsData.data);
+                    }
                 }
             } catch (error) {
-                console.error('Failed to fetch employees:', error);
+                console.error('Failed to fetch dashboard data:', error);
             }
         };
-        fetchEmployees();
-    }, []);
+        fetchData();
+    }, [token]);
+
+    const handleViewEmployee = async (id: string) => {
+        try {
+            // Fetch detailed stats
+            const response = await fetch(`http://localhost:3001/api/employees/${id}/details`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                setSelectedEmployee(data.employee);
+                setIsDetailsModalOpen(true);
+            }
+        } catch (error) {
+            console.error('Failed to fetch employee details:', error);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-[#0a0a0a] text-cyan-50 font-mono selection:bg-cyan-500/30">
@@ -65,6 +103,13 @@ export const AdminDashboard: React.FC = () => {
                         </p>
                     </div>
                     <div className="flex gap-3">
+                        <button
+                            onClick={() => setIsJobModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-white/10 hover:border-purple-500/50 text-purple-400 text-sm rounded transition-all"
+                        >
+                            <Briefcase size={16} />
+                            JOB_ANALYSIS
+                        </button>
                         <button className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-white/10 hover:border-cyan-500/50 text-cyan-400 text-sm rounded transition-all">
                             <Download size={16} />
                             EXPORT_LOGS
@@ -78,13 +123,13 @@ export const AdminDashboard: React.FC = () => {
 
                 {/* Analytics Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Card 1 */}
+                    {/* Card 1: Active Operatives */}
                     <div className="bg-[#111] border border-purple-500/30 p-6 rounded-lg relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                             <Users size={64} />
                         </div>
                         <p className="text-purple-400 text-xs font-bold tracking-wider mb-1">ACTIVE OPERATIVES</p>
-                        <h3 className="text-4xl font-bold text-white mb-4">1,248</h3>
+                        <h3 className="text-4xl font-bold text-white mb-4">{employees.length}</h3>
                         <div className="flex items-center text-xs text-white/60">
                             <span className="text-green-400 flex items-center gap-1 bg-green-400/10 px-1.5 py-0.5 rounded mr-2">
                                 <Activity size={10} /> +12%
@@ -93,13 +138,13 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Card 2 */}
+                    {/* Card 2: Avg Completion Rate */}
                     <div className="bg-[#111] border border-cyan-500/30 p-6 rounded-lg relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                            <Target size={64} /> {/* Replaced Target with Trophy or similar if needed, but Target works */}
+                            <Target size={64} />
                         </div>
                         <p className="text-cyan-400 text-xs font-bold tracking-wider mb-1">AVG. COMPLETION RATE</p>
-                        <h3 className="text-4xl font-bold text-white mb-4">76%</h3>
+                        <h3 className="text-4xl font-bold text-white mb-4">{analytics?.avgCompletionRate || 0}%</h3>
                         <div className="flex items-center text-xs text-white/60">
                             <span className="text-green-400 flex items-center gap-1 bg-green-400/10 px-1.5 py-0.5 rounded mr-2">
                                 <Activity size={10} /> +5%
@@ -108,18 +153,72 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Card 3 */}
+                    {/* Card 3: Total Assessments */}
                     <div className="bg-[#111] border border-green-500/30 p-6 rounded-lg relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                             <Trophy size={64} />
                         </div>
                         <p className="text-green-400 text-xs font-bold tracking-wider mb-1">TOTAL ASSESSMENTS</p>
-                        <h3 className="text-4xl font-bold text-white mb-4">3,892</h3>
+                        <h3 className="text-4xl font-bold text-white mb-4">{analytics?.totalAssessments || 0}</h3>
                         <div className="flex items-center text-xs text-white/60">
                             <span className="text-green-400 flex items-center gap-1 bg-green-400/10 px-1.5 py-0.5 rounded mr-2">
                                 <Activity size={10} /> +8%
                             </span>
                             vs last cycle
+                        </div>
+                    </div>
+                </div>
+
+                {/* Charts Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Activity Timeline */}
+                    <div className="bg-[#111] border border-white/10 p-6 rounded-lg">
+                        <h3 className="text-sm font-bold text-white mb-6 flex items-center gap-2">
+                            <Activity size={16} className="text-cyan-400" />
+                            ACTIVITY_TIMELINE
+                        </h3>
+                        <div className="h-64 w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={analytics?.activityTimeline || []}>
+                                    <defs>
+                                        <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                                    <XAxis dataKey="date" stroke="#666" tick={{ fontSize: 10 }} tickFormatter={(value) => value.slice(5)} />
+                                    <YAxis stroke="#666" tick={{ fontSize: 10 }} />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: '#000', border: '1px solid #333', borderRadius: '4px' }}
+                                        itemStyle={{ color: '#fff' }}
+                                    />
+                                    <Area type="monotone" dataKey="count" stroke="#06b6d4" fillOpacity={1} fill="url(#colorCount)" />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    {/* Skill Distribution */}
+                    <div className="bg-[#111] border border-white/10 p-6 rounded-lg">
+                        <h3 className="text-sm font-bold text-white mb-6 flex items-center gap-2">
+                            <Target size={16} className="text-purple-400" />
+                            SKILL_DISTRIBUTION
+                        </h3>
+                        <div className="h-64 w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={analytics?.skillDistribution || []} layout="vertical">
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#333" horizontal={false} />
+                                    <XAxis type="number" stroke="#666" tick={{ fontSize: 10 }} />
+                                    <YAxis dataKey="name" type="category" stroke="#666" tick={{ fontSize: 10 }} width={100} />
+                                    <Tooltip
+                                        cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                        contentStyle={{ backgroundColor: '#000', border: '1px solid #333', borderRadius: '4px' }}
+                                        itemStyle={{ color: '#fff' }}
+                                    />
+                                    <Bar dataKey="value" fill="#a855f7" radius={[0, 4, 4, 0]} barSize={20} />
+                                </BarChart>
+                            </ResponsiveContainer>
                         </div>
                     </div>
                 </div>
@@ -185,7 +284,12 @@ export const AdminDashboard: React.FC = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <button className="text-white/40 hover:text-cyan-400 transition-colors">EDIT</button>
+                                            <button
+                                                onClick={() => handleViewEmployee(emp.id)}
+                                                className="text-white/40 hover:text-cyan-400 transition-colors"
+                                            >
+                                                REVIEW
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
@@ -194,6 +298,17 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <EmployeeDetailsModal
+                isOpen={isDetailsModalOpen}
+                onClose={() => setIsDetailsModalOpen(false)}
+                employee={selectedEmployee}
+            />
+
+            <JobAnalysisModal
+                isOpen={isJobModalOpen}
+                onClose={() => setIsJobModalOpen(false)}
+            />
         </div>
     );
 };

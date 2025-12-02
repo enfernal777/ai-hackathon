@@ -80,12 +80,17 @@ app.get('/health', (req: Request, res: Response) => {
 import employeeRoutes from './routes/employee';
 import challengeRoutes from './routes/challenge';
 import goalRoutes from './routes/goal';
+import jobRoutes from './routes/job';
+
+import analyticsRoutes from './routes/analytics';
 
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/challenges', challengeRoutes);
 app.use('/api/goals', goalRoutes);
+app.use('/api/jobs', jobRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // 404 handler
 // Serve static files from frontend/dist
