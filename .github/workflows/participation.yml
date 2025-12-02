@@ -97,9 +97,12 @@ jobs:
             fs.writeFileSync('LEADERBOARD.md', mdContent);
 
       - name: Commit and Push Changes
+        env:
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git add .github/leaderboard_data.json LEADERBOARD.md
           git commit -m "🏆 Update Leaderboard for ${{ github.actor }}" || exit 0
-          git push
+          git pull --rebase origin $BRANCH_NAME
+          git push origin HEAD:$BRANCH_NAME
