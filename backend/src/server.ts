@@ -83,6 +83,7 @@ import goalRoutes from './routes/goal';
 import jobRoutes from './routes/job';
 
 import analyticsRoutes from './routes/analytics';
+import assessmentRoutes from './routes/assessment';
 
 // API routes
 app.use('/api/auth', authRoutes);
@@ -91,6 +92,7 @@ app.use('/api/challenges', challengeRoutes);
 app.use('/api/goals', goalRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/assessments', assessmentRoutes);
 
 // 404 handler
 // Serve static files from frontend/dist

@@ -110,6 +110,13 @@ export const AdminDashboard: React.FC = () => {
                             <Briefcase size={16} />
                             JOB_ANALYSIS
                         </button>
+                        <button
+                            onClick={() => navigate('/admin/create-assessment')}
+                            className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-white/10 hover:border-blue-500/50 text-blue-400 text-sm rounded transition-all"
+                        >
+                            <Briefcase size={16} />
+                            CREATE_ASSESSMENT
+                        </button>
                     </div>
                 </div>
 

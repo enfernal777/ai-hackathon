@@ -143,3 +143,6 @@ A5. Yes — the goal is to shift from manual reviews to automated skill assessme
 - [WORKING_MODELS.md](WORKING_MODELS.md) - List of accessible AI models
 - [FEATURES.md](FEATURES.md) - Detailed feature specifications
 - [connectivity-tests/](connectivity-tests/) - All connectivity tests
+
+
+The problem statement only said to focus on GenAI, but we will do is we focus on the training assessment of employees. rather than one skills.

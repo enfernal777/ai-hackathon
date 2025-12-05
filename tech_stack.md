@@ -40,7 +40,6 @@ The backend is a robust REST API built with Node.js and Express.
 
 -   **Platform**: AWS Bedrock.
 -   **Models**:
-    -   Claude 3.5 Sonnet
     -   Amazon Titan
     -   Qwen
 
