@@ -161,10 +161,13 @@ export const generateScenarioFromText = async (text: string) => {
     Task:
     1. Analyze the text and provide a concise "Context" or summary of the material (2-3 sentences).
     2. Identify the "Module Name" (e.g., "Cybersecurity Basics", "Phishing Awareness").
-    3. Generate a 3x3 Rubric (9 criteria total) for evaluating understanding of this material:
+    3. Generate a 3x3 Rubric (9 criteria total) for evaluating understanding of this material.
+       CRITICAL: All 9 criteria must be UNIQUE and DISTINCT. Do not repeat the same phrase.
        - 3 "Generic" criteria (e.g., Clarity, Accuracy, Critical Thinking).
-       - 3 "Department" criteria (relevant to the general domain, e.g., Risk Assessment, Policy Adherence).
-       - 3 "Module" criteria (specific to this content).
+       - 3 "Department" criteria (relevant to the general domain, e.g., Risk Assessment, Policy Adherence, Compliance).
+       - 3 "Module" criteria (specific concepts from the text, e.g., "Phishing Indicators", "Password Strength", "Reporting Procedures").
+       
+       DO NOT just repeat the Module Name. Each "Module" criterion must be a specific concept or key takeaway from the text.
 
     Generate a JSON response with the following structure:
     {
@@ -174,9 +177,9 @@ export const generateScenarioFromText = async (text: string) => {
         "difficulty": "Normal",
         "category": "Module Name",
         "rubric": {
-            "generic": ["criterion 1", "criterion 2", "criterion 3"],
-            "department": ["criterion 1", "criterion 2", "criterion 3"],
-            "module": ["criterion 1", "criterion 2", "criterion 3"]
+            "generic": ["Unique Criterion 1", "Unique Criterion 2", "Unique Criterion 3"],
+            "department": ["Unique Dept Criterion 1", "Unique Dept Criterion 2", "Unique Dept Criterion 3"],
+            "module": ["Specific Concept 1", "Specific Concept 2", "Specific Concept 3"]
         },
         "hint": "Focus on the key concepts."
     }
@@ -184,7 +187,8 @@ export const generateScenarioFromText = async (text: string) => {
     IMPORTANT: 
     1. "rubric" must contain exactly 3 keys: "generic", "department", "module".
     2. Each key in "rubric" must be an array of exactly 3 strings.
-    3. Return ONLY the valid JSON object.
+    3. All 9 strings must be different.
+    4. Return ONLY the valid JSON object.
     `;
 
     const modelId = "amazon.titan-text-express-v1";
