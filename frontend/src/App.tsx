@@ -6,6 +6,7 @@ import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { EmployeeDashboard } from './pages/EmployeeDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
+import CreateAssessment from './pages/CreateAssessment';
 import { Profile } from './pages/Profile';
 
 // Home redirect component
@@ -57,6 +58,14 @@ function App() {
                         element={
                             <ProtectedRoute requiredRole="admin">
                                 <AdminDashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/admin/create-assessment"
+                        element={
+                            <ProtectedRoute requiredRole="admin">
+                                <CreateAssessment />
                             </ProtectedRoute>
                         }
                     />

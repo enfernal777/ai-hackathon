@@ -1,6 +1,8 @@
 # AWS Services
 AWS_PROFILE=
 AWS_REGION=
+AWS_S3_REGION=
+AWS_S3_BUCKET_NAME=
 
 # Database Credentials
 database_password=

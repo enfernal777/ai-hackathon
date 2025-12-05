@@ -13,6 +13,8 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 console.log(`Database: Using key starting with ${supabaseKey.substring(0, 5)}...`);
+console.log('Database: Key length:', supabaseKey.length);
+console.log('Database: Is Service Role Key?', supabaseKey === process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseKey);
 
