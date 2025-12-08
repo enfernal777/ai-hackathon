@@ -37,12 +37,11 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
-cred.txt
 __pycache__/
 *.pyc
+cred.txt
 
 # Local utility scripts
-refToken.py
 fix_env.py
 token.json
 admin_token.json
