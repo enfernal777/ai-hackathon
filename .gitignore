@@ -39,6 +39,7 @@ tmp/
 temp/
 __pycache__/
 *.pyc
+cred.txt
 
 # Local utility scripts
 fix_env.py
