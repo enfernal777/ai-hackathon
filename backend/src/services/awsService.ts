@@ -689,18 +689,8 @@ export const generateMicroScenario = async (
     };
     const xpReward = difficultyXP[difficulty] || 250;
 
-    // Determine question type based on difficulty
-    // Easy (Basic) -> multiple_choice
-    // Normal (Intermediate) -> Mixed
-    // Hard (Advance) -> text
-    let targetType: 'text' | 'multiple_choice' = 'text';
-    if (difficulty === 'Easy') {
-        targetType = 'multiple_choice';
-    } else if (difficulty === 'Normal') {
-        targetType = Math.random() > 0.5 ? 'multiple_choice' : 'text';
-    } else {
-        targetType = 'text';
-    }
+    // All questions are text (short answer) for gamified experience
+    const targetType: 'text' = 'text';
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         const temperature = Math.min(1.0, 0.5 + (attempt * 0.05)); // gradual increase
@@ -716,9 +706,8 @@ export const generateMicroScenario = async (
             'Hard': 'tricky real-world challenge'
         };
 
-        const typeInstruction = targetType === 'multiple_choice'
-            ? `MULTIPLE CHOICE: Provide 4 options and the correct answer.`
-            : `SHORT ANSWER: Direct question, no options.`;
+        // All questions are short answer (text)
+        const typeInstruction = 'SHORT ANSWER: Direct question requiring a brief response.';
 
         const prompt = `🎮 MISSION GENERATOR - Create a SHORT, FUN challenge!
 
@@ -744,9 +733,6 @@ Output ONLY valid JSON:
     "mission": "MISSION: Topic Name",
     "scenario": "1-2 sentence briefing",
     "question": "direct challenge question",
-    "type": "${targetType}",
-    "options": ["A", "B", "C", "D"],
-    "correctAnswer": "B",
     "hint": "quick tip"
 }`;
 
@@ -774,13 +760,7 @@ Output ONLY valid JSON:
                         continue;
                     }
 
-                    // Validate MCQ fields
-                    if (targetType === 'multiple_choice') {
-                        if (!parsed.options || !Array.isArray(parsed.options) || parsed.options.length < 2 || !parsed.correctAnswer) {
-                            console.log('DEBUG: Invalid MCQ format, retrying...');
-                            continue;
-                        }
-                    }
+
 
                     console.log('DEBUG: Unique question generated:', parsed.question.substring(0, 50));
                     return {
