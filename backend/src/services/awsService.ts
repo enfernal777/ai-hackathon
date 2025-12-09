@@ -689,18 +689,8 @@ export const generateMicroScenario = async (
     };
     const xpReward = difficultyXP[difficulty] || 250;
 
-    // Determine question type based on difficulty
-    // Easy (Basic) -> multiple_choice
-    // Normal (Intermediate) -> Mixed
-    // Hard (Advance) -> text
-    let targetType: 'text' | 'multiple_choice' = 'text';
-    if (difficulty === 'Easy') {
-        targetType = 'multiple_choice';
-    } else if (difficulty === 'Normal') {
-        targetType = Math.random() > 0.5 ? 'multiple_choice' : 'text';
-    } else {
-        targetType = 'text';
-    }
+    // All questions are text (short answer) for gamified experience
+    const targetType: 'text' = 'text';
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         const temperature = Math.min(1.0, 0.5 + (attempt * 0.05)); // gradual increase
@@ -709,32 +699,41 @@ export const generateMicroScenario = async (
             ? history.map((h) => `- "${h.question}"`).join('\n')
             : "None yet";
 
-        const typeInstruction = targetType === 'multiple_choice'
-            ? `Generate a MULTIPLE CHOICE question. Provide 4 options and the correct answer.`
-            : `Generate a short answer TEXT question.`;
+        // Gamified difficulty descriptions
+        const difficultyStyle: Record<string, string> = {
+            'Easy': 'straightforward knowledge check',
+            'Normal': 'requires thinking and application',
+            'Hard': 'tricky real-world challenge'
+        };
 
-        const prompt = `Create a workplace scenario question for training assessment.
+        // All questions are short answer (text)
+        const typeInstruction = 'SHORT ANSWER: Direct question requiring a brief response.';
 
-JOB: ${jobDescription.substring(0, 200)}
-TRAINING CONTENT: ${curriculum.substring(0, 2000)}
-DIFFICULTY: ${difficulty}
-QUESTION NUMBER: ${history.length + 1}
+        const prompt = `🎮 MISSION GENERATOR - Create a SHORT, FUN challenge!
+
+AGENT ROLE: ${jobDescription.substring(0, 150)}
+INTEL (Training): ${curriculum.substring(0, 1800)}
+MISSION LEVEL: ${difficulty} - ${difficultyStyle[difficulty]}
+CHALLENGE #${history.length + 1}
 TYPE: ${targetType}
 
-ALREADY ASKED (DO NOT REPEAT OR ASK SIMILAR):
+PREVIOUS MISSIONS (DO NOT REPEAT):
 ${historyText}
 
-IMPORTANT: Create a completely DIFFERENT question. Focus on a NEW aspect of the training material not covered above.
-${typeInstruction}
+RULES:
+- Mission: Create a catchy 2-4 word mission title (e.g., "Data Breach Response")
+- Scenario: MAX 2 sentences. Quick setup like a video game mission briefing.
+- Question: MAX 1-2 sentences. Clear, direct challenge.
+- Use action words: "handle", "solve", "respond", "tackle", "fix"
+- Make it feel like a real work challenge, but FUN
+- ${typeInstruction}
 
 Output ONLY valid JSON:
 {
-    "scenario": "brief workplace situation",
-    "question": "your unique question",
-    "type": "${targetType}",
-    "options": ["Option 1 Text", "Option 2 Text", "Option 3 Text", "Option 4 Text"], // Only if multiple_choice
-    "correctAnswer": "Option 2 Text", // Must match one of the options exactly
-    "hint": "helpful hint"
+    "mission": "MISSION: Topic Name",
+    "scenario": "1-2 sentence briefing",
+    "question": "direct challenge question",
+    "hint": "quick tip"
 }`;
 
         const command = new ConverseCommand({
@@ -761,13 +760,7 @@ Output ONLY valid JSON:
                         continue;
                     }
 
-                    // Validate MCQ fields
-                    if (targetType === 'multiple_choice') {
-                        if (!parsed.options || !Array.isArray(parsed.options) || parsed.options.length < 2 || !parsed.correctAnswer) {
-                            console.log('DEBUG: Invalid MCQ format, retrying...');
-                            continue;
-                        }
-                    }
+
 
                     console.log('DEBUG: Unique question generated:', parsed.question.substring(0, 50));
                     return {
