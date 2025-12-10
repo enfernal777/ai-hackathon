@@ -186,8 +186,8 @@ const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({ onUploadComplet
     };
 
     return (
-        <div className="bg-[#111] p-6 rounded-xl border border-white/5 space-y-6">
-            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2 tracking-wider">
+        <div className="theme-bg-secondary p-6 rounded-xl border border-white/5 space-y-6">
+            <h3 className="text-xl font-bold theme-text-primary mb-4 flex items-center gap-2 tracking-wider">
                 <Upload className="w-5 h-5 text-cyan-400" />
                 UPLOAD TRAINING MATERIAL
             </h3>
@@ -201,7 +201,7 @@ const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({ onUploadComplet
 
                 <div
                     onClick={() => setIsDeptDropdownOpen(!isDeptDropdownOpen)}
-                    className="w-full bg-black/50 border border-white/10 rounded px-4 py-3 text-white cursor-pointer hover:bg-white/5 transition-colors flex items-center justify-between group"
+                    className="w-full theme-bg-tertiary border theme-border rounded px-4 py-3 theme-text-primary cursor-pointer hover:bg-white/5 transition-colors flex items-center justify-between group"
                 >
                     <div className="flex items-center gap-2">
                         {isDeptDropdownOpen ? (
@@ -209,7 +209,7 @@ const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({ onUploadComplet
                         ) : (
                             <ChevronRight className="w-4 h-4 text-gray-400" />
                         )}
-                        <span className={selectedDepartments.length === 0 ? 'text-gray-500' : 'text-white'}>
+                        <span className={selectedDepartments.length === 0 ? 'text-gray-500' : 'theme-text-primary'}>
                             {selectedDeptNames}
                         </span>
                     </div>
@@ -221,7 +221,7 @@ const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({ onUploadComplet
                 </div>
 
                 {isDeptDropdownOpen && (
-                    <div className="absolute z-10 w-full mt-1 bg-[#1a1a1a] border border-white/10 rounded-lg shadow-xl max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2">
+                    <div className="absolute z-10 w-full mt-1 theme-bg-tertiary border theme-border rounded-lg shadow-xl max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2">
                         {departments.map(dept => (
                             <div
                                 key={dept.id}
@@ -236,7 +236,7 @@ const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({ onUploadComplet
                                         <Check className="w-3 h-3 text-black" />
                                     )}
                                 </div>
-                                <span className="text-gray-300 group-hover:text-white transition-colors">{dept.name}</span>
+                                <span className="text-gray-300 group-hover:theme-text-primary transition-colors">{dept.name}</span>
                             </div>
                         ))}
                         {departments.length === 0 && (
@@ -258,12 +258,12 @@ const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({ onUploadComplet
                     type="datetime-local"
                     value={postAssessmentDate}
                     onChange={(e) => setPostAssessmentDate(e.target.value)}
-                    className="w-full bg-black/50 border border-white/10 rounded px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50 [color-scheme:dark]"
+                    className="w-full theme-bg-tertiary border theme-border rounded px-4 py-3 theme-text-primary focus:outline-none focus:border-cyan-500/50 [color-scheme:dark]"
                 />
             </div>
 
             {/* File Upload */}
-            <div className="border-2 border-dashed border-white/10 rounded-lg p-8 text-center hover:border-cyan-500/50 transition-colors group">
+            <div className="border-2 border-dashed theme-border rounded-lg p-8 text-center hover:border-cyan-500/50 transition-colors group">
                 <input
                     type="file"
                     id="file-upload"
@@ -273,7 +273,7 @@ const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({ onUploadComplet
                 />
                 <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center gap-2">
                     <FileText className="w-12 h-12 text-gray-600 group-hover:text-cyan-400 transition-colors" />
-                    <span className="text-gray-300 font-medium group-hover:text-white transition-colors">
+                    <span className="text-gray-300 font-medium group-hover:theme-text-primary transition-colors">
                         {file ? file.name : 'Click to upload PDF or Text file'}
                     </span>
                     <span className="text-gray-600 text-sm">
@@ -310,7 +310,7 @@ const AssessmentUploader: React.FC<AssessmentUploaderProps> = ({ onUploadComplet
                 className={`w-full py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all tracking-wider
                     ${!file || selectedDepartments.length === 0 || !postAssessmentDate || uploading || processing
                         ? 'bg-white/5 text-gray-600 cursor-not-allowed'
-                        : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/20'
+                        : 'bg-cyan-600 hover:bg-cyan-500 theme-text-primary shadow-lg shadow-cyan-500/20'
                     }`}
             >
                 {processing ? (

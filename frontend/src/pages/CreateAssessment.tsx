@@ -18,22 +18,22 @@ const CreateAssessment: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#0a0a0a] text-cyan-50 font-mono selection:bg-cyan-500/30 p-8">
+        <div className="min-h-screen theme-bg-primary text-cyan-50 font-mono selection:bg-cyan-500/30 p-8">
             <div className="max-w-5xl mx-auto">
                 <button
                     onClick={() => navigate(-1)}
-                    className="flex items-center gap-2 text-gray-400 hover:text-cyan-400 mb-8 transition-colors group"
+                    className="flex items-center gap-2 theme-text-secondary hover:text-cyan-400 mb-8 transition-colors group"
                 >
                     <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                     BACK_TO_DASHBOARD
                 </button>
 
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold mb-2 text-white tracking-widest flex items-center gap-3">
+                    <h1 className="text-3xl font-bold mb-2 theme-text-primary tracking-widest flex items-center gap-3">
                         <span className="text-cyan-400">&gt;_</span>
                         CREATE ASSESSMENT MODULE
                     </h1>
-                    <p className="text-gray-400 text-sm border-l-2 border-cyan-500/30 pl-4">
+                    <p className="theme-text-secondary text-sm border-l-2 border-cyan-500/30 pl-4">
                         Upload training materials (PDF/Text) to automatically generate CTF scenarios and rubrics using AI.
                     </p>
                 </div>
@@ -50,7 +50,7 @@ const CreateAssessment: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="bg-[#111] rounded-xl border border-white/5 p-6 space-y-8">
+                        <div className="theme-bg-secondary rounded-xl border border-white/5 p-6 space-y-8">
 
                             {/* 9 Rubrics Grid */}
                             <div>
