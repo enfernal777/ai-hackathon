@@ -40,15 +40,25 @@ export const generatePersonalizedAssessment = async (req: AuthRequest, res: Resp
         // 2. Create Scenario Entry
         // We set is_personalized = true
         // We store the first question or generic text in scenario_text
+        // Ensure all required fields have valid fallback values
+        const safeTargetSkills = aiData.targetSkills && aiData.targetSkills.length > 0
+            ? aiData.targetSkills
+            : ['General'];
+        const safeRubric = {
+            criteria: ['Accuracy', 'Understanding', 'Application'],
+            ideal_response_keywords: safeTargetSkills.map(s => s.toLowerCase())
+        };
+
         const { data: scenario, error: scenarioError } = await supabase
             .from('scenarios')
             .insert({
                 title: aiData.assessmentTitle || `Personalized Assessment: ${goalDescription.substring(0, 30)}...`,
                 category: 'Personalized',
-                skill: aiData.targetSkills[0] || 'General',
+                skill: safeTargetSkills[0],
                 difficulty: difficulty || 'Normal',
                 scenario_text: `Personalized assessment for ${jobTitle} aiming for ${goalDescription}`,
                 task: `Complete this ${format === 'mcq' ? 'multiple choice' : 'text-based'} assessment.`,
+                rubric: safeRubric,
                 type: format === 'mcq' ? 'multiple_choice' : 'text',
                 is_personalized: true,
                 creator_id: userId,
@@ -144,7 +154,7 @@ export const startPersonalizedAssessment = async (req: AuthRequest, res: Respons
 
 export const submitPersonalizedAnswer = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const { userId, scenarioId, answer } = req.body;
+        const { userId, scenarioId, answer, skipped } = req.body;
 
         // Fetch tracking info
         const { data: tracking, error } = await supabase
@@ -172,26 +182,44 @@ export const submitPersonalizedAnswer = async (req: AuthRequest, res: Response):
         let score = 0;
         let feedback = '';
 
+        // Use explicit skipped flag
+        const isDontKnow = skipped === true;
+
         // Evaluation
         if (currentQuestion.type === 'multiple_choice') {
-            const isCorrect = answer.trim().toLowerCase() === currentQuestion.correctAnswer.trim().toLowerCase()
-                || answer.trim().startsWith(currentQuestion.correctAnswer.trim()); // Handle "A. Option" vs "Option"
+            const isCorrect = !isDontKnow && (answer.trim().toLowerCase() === currentQuestion.correctAnswer.trim().toLowerCase()
+                || answer.trim().startsWith(currentQuestion.correctAnswer.trim()));
 
-            // Or simpler: check if answer matches one of the options index or text
-            // Since AI usually provides "correctAnswer" as the text, we compare text
             score = isCorrect ? 100 : 0;
-            feedback = isCorrect ? 'Correct!' : `Incorrect. The correct answer was: ${currentQuestion.correctAnswer}`;
+            // Enhanced feedback
+            if (isCorrect) {
+                feedback = 'Correct!';
+            } else if (isDontKnow) {
+                feedback = `No problem! The correct answer is: ${currentQuestion.correctAnswer}.`;
+                // You might want to add more explanation here if available in the question object
+            } else {
+                feedback = `Incorrect. The correct answer was: ${currentQuestion.correctAnswer}`;
+            }
         } else {
             // Text evaluation via AI
-            // Reuse evaluatePreAssessmentAnswer but ignore baseline logic
-            const aiEval = await evaluatePreAssessmentAnswer(
-                currentQuestion.question,
-                answer,
-                `Skill context: ${currentQuestion.skill} for personalized assessment.`,
-                currentIndex + 1
-            );
-            score = aiEval.score;
-            feedback = aiEval.feedback;
+            if (isDontKnow) {
+                score = 0;
+                const correctRef = currentQuestion.correctAnswer || currentQuestion.rubric_reference;
+                if (correctRef) {
+                    feedback = `No problem! A good answer would be: ${correctRef}`;
+                } else {
+                    feedback = `That's okay. A good answer would demonstrate mastery of: ${currentQuestion.skill}`;
+                }
+            } else {
+                const aiEval = await evaluatePreAssessmentAnswer(
+                    currentQuestion.question,
+                    answer,
+                    `Skill context: ${currentQuestion.skill} for personalized assessment.`,
+                    currentIndex + 1
+                );
+                score = aiEval.score;
+                feedback = aiEval.feedback;
+            }
         }
 
         // Save Answer
@@ -211,7 +239,6 @@ export const submitPersonalizedAnswer = async (req: AuthRequest, res: Response):
             finalScore = Math.round(totalScore / questions.length);
 
             // Update user profile (ELO, Skills)
-            // 1. Fetch current stats
             const { data: user } = await supabase
                 .from('employees')
                 .select('skills_profile, elo_rating, total_points')
@@ -219,17 +246,19 @@ export const submitPersonalizedAnswer = async (req: AuthRequest, res: Response):
                 .single();
 
             if (user) {
-                // ELO Calculation (Simplified)
-                const eloChange = Math.round((finalScore - 50) / 2); // +25 for 100, -25 for 0
+                // ELO Calculation (Updated: always positive but low for failures)
+                // Old: Math.round((finalScore - 50) / 2); (+25 to -25)
+                // New: Base +2, plus up to 20 based on score.
+                // 0 score -> +2 ELO
+                // 100 score -> +22 ELO
+                const eloChange = Math.round(finalScore * 0.2) + 2;
                 const newElo = (user.elo_rating || 1000) + eloChange;
 
                 // Skills Update
                 const newSkills = { ...user.skills_profile };
                 const skillName = currentQuestion.skill || 'General';
-                // Simple weighted average for skill update
-                const currentSkillScore = newSkills[skillName] || 0.5; // default 0.5 (50%)
+                const currentSkillScore = newSkills[skillName] || 0.5;
                 const normalizedScore = finalScore / 100;
-                // Move skill 10% towards the new performance
                 newSkills[skillName] = Number(((currentSkillScore * 0.9) + (normalizedScore * 0.1)).toFixed(2));
 
                 await supabase.from('employees').update({

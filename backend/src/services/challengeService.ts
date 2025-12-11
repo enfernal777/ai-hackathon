@@ -37,22 +37,33 @@ export const generateChallenge = async (jobTitle: string, difficulty: string, us
 
         const challengeData = JSON.parse(text);
 
+        // Ensure all required fields have fallback values
+        const safeRubric = challengeData.rubric || {
+            criteria: ['Accuracy', 'Understanding', 'Application'],
+            ideal_response_keywords: ['solution', 'analysis', 'result']
+        };
+        const safeTask = challengeData.task || `Complete this ${difficulty} level challenge.`;
+        const safeSkill = challengeData.skill || 'General';
+        const safeScenarioText = challengeData.scenario_text || `A ${difficulty} challenge for ${jobTitle}.`;
+        const safeTitle = challengeData.title || `Challenge: ${jobTitle} - ${new Date().getTime()}`;
+        const safeCategory = challengeData.category || 'General';
+
         // Save to database
         const { data, error } = await supabase
             .from('scenarios')
             .insert({
-                skill: challengeData.skill,
+                skill: safeSkill,
                 difficulty: difficulty,
-                scenario_text: challengeData.scenario_text,
-                task: challengeData.task,
-                type: challengeData.type,
+                scenario_text: safeScenarioText,
+                task: safeTask,
+                type: challengeData.type || 'text',
                 options: challengeData.options,
-                rubric: challengeData.rubric,
-                hint: challengeData.hint,
+                rubric: safeRubric,
+                hint: challengeData.hint || 'Think carefully about the requirements.',
                 is_personalized: isPersonalized,
                 creator_id: isPersonalized ? userId : null,
-                title: challengeData.title,
-                category: challengeData.category
+                title: safeTitle,
+                category: safeCategory
             })
             .select()
             .single();

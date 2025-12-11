@@ -191,29 +191,29 @@ export const ManagerDashboard: React.FC = () => {
                     {topPerformer ? (
                         <div className="theme-bg-secondary rounded-xl p-1 relative overflow-hidden shadow-xl shadow-yellow-500/10 border border-yellow-500/20">
                             <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent pointer-events-none" />
-                            <div className="bg-gray-900 dark:bg-black/40 h-full w-full rounded-lg p-5 relative z-10 flex flex-col justify-center">
+                            <div className="h-full w-full rounded-lg p-5 relative z-10 flex flex-col justify-center">
                                 <div className="flex items-start justify-between mb-4">
                                     <div>
-                                        <p className="text-yellow-500 text-xs font-bold tracking-widest flex items-center gap-2">
+                                        <p className="text-yellow-600 dark:text-yellow-500 text-xs font-bold tracking-widest flex items-center gap-2">
                                             <Crown size={14} /> TOP OPERATIVE
                                         </p>
-                                        <h3 className="text-2xl font-bold text-white mt-1">{topPerformer.name}</h3>
-                                        <p className="text-xs text-gray-400">{topPerformer.job_title}</p>
+                                        <h3 className="text-2xl font-bold theme-text-primary mt-1">{topPerformer.name}</h3>
+                                        <p className="text-xs theme-text-secondary">{topPerformer.job_title}</p>
                                     </div>
                                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-orange-600 p-[2px]">
-                                        <div className="w-full h-full rounded-full bg-black flex items-center justify-center text-yellow-500 font-bold text-lg">
+                                        <div className="w-full h-full rounded-full bg-theme-bg-secondary flex items-center justify-center text-yellow-500 font-bold text-lg">
                                             {topPerformer.name.charAt(0)}
                                         </div>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 text-xs">
-                                    <div className="bg-white/5 p-2 rounded border border-white/10">
-                                        <span className="block text-gray-400">ELO Rating</span>
-                                        <span className="block text-lg font-mono text-yellow-400">{topPerformer.elo_rating}</span>
+                                    <div className="bg-gray-100 dark:bg-white/5 p-2 rounded border border-gray-200 dark:border-white/10">
+                                        <span className="block theme-text-secondary">ELO Rating</span>
+                                        <span className="block text-lg font-mono text-yellow-600 dark:text-yellow-400">{topPerformer.elo_rating}</span>
                                     </div>
-                                    <div className="bg-white/5 p-2 rounded border border-white/10">
-                                        <span className="block text-gray-400">Win Rate</span>
-                                        <span className="block text-lg font-mono text-yellow-400">{topPerformer.win_rate != null ? `${(topPerformer.win_rate * 100).toFixed(0)}%` : 'N/A'}</span>
+                                    <div className="bg-gray-100 dark:bg-white/5 p-2 rounded border border-gray-200 dark:border-white/10">
+                                        <span className="block theme-text-secondary">Win Rate</span>
+                                        <span className="block text-lg font-mono text-yellow-600 dark:text-yellow-400">{topPerformer.win_rate != null ? `${(topPerformer.win_rate * 100).toFixed(0)}%` : 'N/A'}</span>
                                     </div>
                                 </div>
                             </div>

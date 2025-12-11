@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 @layer base {
+
   /* Theme CSS Variables */
   :root {
     /* Light mode (default) */

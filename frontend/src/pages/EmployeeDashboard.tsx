@@ -2,15 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
-import { Terminal, Cpu, Activity, LogOut, User, Trophy, Sun, Moon, TrendingUp, Award } from 'lucide-react';
+import { Terminal, Cpu, Activity, LogOut, User, Trophy, Sun, Moon, Sparkles, Brain } from 'lucide-react';
 import { ChallengeCard } from '../components/ChallengeCard';
 import { ChallengeModal } from '../components/ChallengeModal';
 import { PreAssessmentModal } from '../components/PreAssessmentModal';
 import { PostAssessmentModal } from '../components/PostAssessmentModal';
-import { GrowthTab } from '../components/GrowthTab';
 import { CareerPath, CareerData } from '../components/CareerPath';
+import { PersonalizedAssessmentModal } from '../components/PersonalizedAssessmentModal';
 import { API_BASE_URL } from '../config';
-import { Zap, Target, Star } from 'lucide-react';
 import { fetchWithRetry } from '../utils/fetchWithRetry';
 
 // Interface for profile stats fetched from API
@@ -22,18 +21,22 @@ interface ProfileStats {
     jobTitle: string;
 }
 
-type DashboardTab = 'challenges' | 'progress' | 'career' | 'growth';
-
 export const EmployeeDashboard: React.FC = () => {
     const { user, logout } = useAuth();
     const { toggleTheme, isDark } = useTheme();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<DashboardTab>('challenges');
+
+    // State
     const [mainChallenges, setMainChallenges] = useState<any[]>([]);
     const [selectedChallenge, setSelectedChallenge] = useState<any | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [careerData, setCareerData] = useState<CareerData | null>(null);
+
+    // Modals state
     const [showPreAssessment, setShowPreAssessment] = useState(false);
     const [showPostAssessment, setShowPostAssessment] = useState(false);
+    const [showPersonalizedAssessment, setShowPersonalizedAssessment] = useState(false);
+
     const [preAssessmentScenario, setPreAssessmentScenario] = useState<any | null>(null);
     const [postAssessmentScenario, setPostAssessmentScenario] = useState<any | null>(null);
     const [preAssessmentStatuses, setPreAssessmentStatuses] = useState<Record<string, boolean>>({});
@@ -250,228 +253,127 @@ export const EmployeeDashboard: React.FC = () => {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto p-6 space-y-8">
-                {/* Header & Stats */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-widest theme-text-primary">
-                            WELCOME BACK, <span className="text-cyan-600 dark:text-cyan-400">{user?.name?.split(' ')[0].toUpperCase()}</span>
-                        </h1>
-                        <p className="theme-text-secondary text-sm mt-1">Ready for your next mission?</p>
+            <div className="max-w-7xl mx-auto p-6 space-y-12">
+                {/* 1. Header & Stats Row */}
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-widest theme-text-primary">
+                                WELCOME BACK, <span className="text-cyan-600 dark:text-cyan-400">{user?.name?.split(' ')[0].toUpperCase()}</span>
+                            </h1>
+                            <p className="theme-text-secondary text-sm mt-1">Ready for your next mission?</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="theme-bg-secondary border theme-border rounded-lg p-4 text-center hover:border-cyan-500/30 transition-colors">
+                            <p className="text-[10px] theme-text-muted uppercase tracking-wider mb-1">ELO Rating</p>
+                            <p className="text-2xl font-bold text-cyan-400">{profileStats?.eloRating || 1000}</p>
+                        </div>
+                        <div className="theme-bg-secondary border theme-border rounded-lg p-4 text-center hover:border-green-500/30 transition-colors">
+                            <p className="text-[10px] theme-text-muted uppercase tracking-wider mb-1">Missions Completed</p>
+                            <p className="text-2xl font-bold text-green-400">{Object.values(postAssessmentStatuses).filter(Boolean).length}</p>
+                        </div>
+                        <div className="theme-bg-secondary border theme-border rounded-lg p-4 text-center hover:border-yellow-500/30 transition-colors">
+                            <p className="text-[10px] theme-text-muted uppercase tracking-wider mb-1">In Progress</p>
+                            <p className="text-2xl font-bold text-yellow-400">{mainChallenges.filter(c => preAssessmentStatuses[c.id] && !postAssessmentStatuses[c.id]).length}</p>
+                        </div>
+                        <div className="theme-bg-secondary border theme-border rounded-lg p-4 text-center hover:border-purple-500/30 transition-colors">
+                            <p className="text-[10px] theme-text-muted uppercase tracking-wider mb-1">Rank</p>
+                            {/* Placeholder rank, could be fetched if available */}
+                            <p className="text-2xl font-bold text-purple-400">#{profileStats?.eloRating ? (profileStats.eloRating > 1200 ? '12' : '45') : '--'}</p>
+                        </div>
                     </div>
                 </div>
 
-                {/* Tab Navigation */}
-                <div className="flex gap-1 p-1 theme-bg-secondary rounded-lg border theme-border">
-                    {[
-                        { id: 'challenges' as DashboardTab, label: 'CHALLENGES', icon: Terminal },
-                        { id: 'progress' as DashboardTab, label: 'PROGRESS', icon: Activity },
-                        { id: 'career' as DashboardTab, label: 'CAREER', icon: TrendingUp },
-                        { id: 'growth' as DashboardTab, label: 'GROWTH', icon: Award }
-                    ].map((tab) => {
-                        const Icon = tab.icon;
-                        return (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-xs font-bold tracking-wider transition-all ${activeTab === tab.id
-                                    ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg'
-                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
-                                    }`}
-                            >
-                                <Icon size={14} />
-                                {tab.label}
-                            </button>
-                        );
-                    })}
+                {/* 2. Career Goal (Hero Section) */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                        <div className="p-1.5 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded border border-cyan-500/30">
+                            <Sparkles size={16} className="text-cyan-400" />
+                        </div>
+                        <h2 className="text-lg font-bold theme-text-primary tracking-wider">CAREER OBJECTIVE</h2>
+                    </div>
+
+                    <div className="theme-bg-secondary border theme-border rounded-xl p-1">
+                        <CareerPath userId={user?.id} />
+                    </div>
                 </div>
 
-                {/* Tab Content */}
-                {activeTab === 'growth' && (
-                    <GrowthTab
-                        userName={user?.name?.split(' ')[0]}
-                        completedTrainings={profileStats?.completedMissions || Object.values(postAssessmentStatuses).filter(Boolean).length}
-                        eloRating={profileStats?.eloRating || 1000}
-                        userId={user?.id}
-                        userJobTitle={profileStats?.jobTitle || 'Employee'}
-                    />
-                )}
+                {/* 3. Challenges Section */}
+                <div className="space-y-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b theme-border pb-4">
+                        <h2 className="text-xl font-bold theme-text-primary tracking-wider flex items-center gap-2">
+                            <span className="text-cyan-600 dark:text-cyan-400">&gt;_</span> ACTIVE MISSIONS
+                        </h2>
 
-                {activeTab === 'career' && (
-                    <CareerPath userId={user?.id} />
-                )}
-
-                {activeTab === 'progress' && (
-                    <div className="space-y-6">
-                        {/* Progress Stats Overview */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div className="theme-bg-secondary border theme-border rounded-lg p-6 text-center">
-                                <p className="text-xs theme-text-muted uppercase tracking-wider mb-1">ELO Rating</p>
-                                <p className="text-3xl font-bold text-cyan-400">{profileStats?.eloRating || 1000}</p>
-                            </div>
-                            <div className="theme-bg-secondary border theme-border rounded-lg p-6 text-center">
-                                <p className="text-xs theme-text-muted uppercase tracking-wider mb-1">Completed</p>
-                                <p className="text-3xl font-bold text-green-400">{Object.values(postAssessmentStatuses).filter(Boolean).length}</p>
-                            </div>
-                            <div className="theme-bg-secondary border theme-border rounded-lg p-6 text-center">
-                                <p className="text-xs theme-text-muted uppercase tracking-wider mb-1">In Progress</p>
-                                <p className="text-3xl font-bold text-yellow-400">{mainChallenges.filter(c => preAssessmentStatuses[c.id] && !postAssessmentStatuses[c.id]).length}</p>
-                            </div>
-                            <div className="theme-bg-secondary border theme-border rounded-lg p-6 text-center">
-                                <p className="text-xs theme-text-muted uppercase tracking-wider mb-1">Available</p>
-                                <p className="text-3xl font-bold text-purple-400">{mainChallenges.filter(c => !preAssessmentStatuses[c.id]).length}</p>
-                            </div>
-                        </div>
-
-                        {/* In Progress Trainings */}
-                        <div className="theme-bg-secondary border theme-border rounded-lg p-6">
-                            <h2 className="text-lg font-bold theme-text-primary tracking-wider flex items-center gap-2 mb-6">
-                                <Activity size={18} className="text-yellow-400" />
-                                IN PROGRESS
-                            </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {mainChallenges
-                                    .filter(c => preAssessmentStatuses[c.id] && !postAssessmentStatuses[c.id])
-                                    .map(challenge => (
-                                        <ChallengeCard
-                                            key={challenge.id}
-                                            challenge={challenge}
-                                            onClick={() => handleChallengeClick(challenge)}
-                                            preAssessmentCompleted={preAssessmentStatuses[challenge.id]}
-                                            postAssessmentCompleted={postAssessmentStatuses[challenge.id]}
-                                        />
-                                    ))}
-                                {mainChallenges.filter(c => preAssessmentStatuses[c.id] && !postAssessmentStatuses[c.id]).length === 0 && (
-                                    <div className="col-span-full text-center py-8 theme-text-muted text-sm">
-                                        No trainings in progress. Start a new challenge!
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Completed Trainings */}
-                        <div className="theme-bg-secondary border theme-border rounded-lg p-6">
-                            <h2 className="text-lg font-bold theme-text-primary tracking-wider flex items-center gap-2 mb-6">
-                                <Award size={18} className="text-green-400" />
-                                COMPLETED
-                            </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {mainChallenges
-                                    .filter(c => postAssessmentStatuses[c.id])
-                                    .map(challenge => (
-                                        <ChallengeCard
-                                            key={challenge.id}
-                                            challenge={challenge}
-                                            onClick={() => handleChallengeClick(challenge)}
-                                            preAssessmentCompleted={preAssessmentStatuses[challenge.id]}
-                                            postAssessmentCompleted={postAssessmentStatuses[challenge.id]}
-                                        />
-                                    ))}
-                                {mainChallenges.filter(c => postAssessmentStatuses[c.id]).length === 0 && (
-                                    <div className="col-span-full text-center py-8 theme-text-muted text-sm">
-                                        No completed trainings yet. Finish a challenge to see it here!
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                        <button
+                            onClick={() => setShowPersonalizedAssessment(true)}
+                            className="group relative inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-600 to-purple-600 text-white font-bold rounded-lg shadow-lg hover:shadow-cyan-500/25 hover:scale-105 transition-all duration-300 text-sm"
+                        >
+                            <div className="absolute inset-0 bg-white/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <Brain className="animate-pulse" size={16} />
+                            <span>New Assessment</span>
+                        </button>
                     </div>
-                )}
 
-                {activeTab === 'challenges' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-
-                        {/* Left Column: Challenges (3 cols) */}
-                        <div className="lg:col-span-3 space-y-8">
-
-                            {/* Growth Snapshot / Dopamine Hit */}
-                            {careerData?.levels?.find(l => l.isCurrent) && (
-                                <div className="theme-bg-secondary border theme-border rounded-lg p-6 relative overflow-hidden group">
-                                    <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
-                                    <div className="relative z-10">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-lg border border-cyan-500/30">
-                                                    <Zap size={20} className="text-cyan-400" />
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-xs font-bold theme-text-muted uppercase tracking-wider">Current Focus</h3>
-                                                    <p className="text-xl font-bold theme-text-primary flex items-center gap-2">
-                                                        {careerData.levels.find(l => l.isCurrent)?.title}
-                                                        <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
-                                                            Lvl {careerData.levels.find(l => l.isCurrent)?.level}
-                                                        </span>
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-xs theme-text-muted uppercase tracking-wider mb-1">Skill Rating</p>
-                                                <div className="flex items-center gap-2 justify-end">
-                                                    <Star size={16} className="text-yellow-400 fill-yellow-400" />
-                                                    <span className="text-2xl font-bold text-white">{profileStats?.eloRating || 1000}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Progress Bar */}
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between text-xs font-medium">
-                                                <span className="theme-text-secondary">Progress to Next Level</span>
-                                                <span className="text-cyan-400">{careerData.levels.find(l => l.isCurrent)?.trainingProgress}%</span>
-                                            </div>
-                                            <div className="h-3 bg-black/40 rounded-full overflow-hidden border border-white/5">
-                                                <div
-                                                    className="h-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(6,182,212,0.5)]"
-                                                    style={{ width: `${careerData.levels.find(l => l.isCurrent)?.trainingProgress}%` }}
-                                                />
-                                            </div>
-                                            <div className="flex justify-between items-center text-xs theme-text-muted mt-2">
-                                                <span>{careerData.levels.find(l => l.isCurrent)?.completedTrainings.length} / {careerData.levels.find(l => l.isCurrent)?.requiredTrainings.length} Missions Completed</span>
-                                                <span className="flex items-center gap-1 hover:text-cyan-400 cursor-pointer transition-colors" onClick={() => setActiveTab('career')}>
-                                                    View Career Path <Target size={12} />
-                                                </span>
-                                            </div>
-                                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {/* In Progress First */}
+                        {mainChallenges
+                            .filter(c => preAssessmentStatuses[c.id] && !postAssessmentStatuses[c.id])
+                            .map(challenge => (
+                                <div key={challenge.id} className="relative">
+                                    <div className="absolute -top-3 -right-2 z-10">
+                                        <span className="bg-yellow-500 text-black text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg border border-yellow-400 animate-bounce">
+                                            IN PROGRESS
+                                        </span>
                                     </div>
+                                    <ChallengeCard
+                                        challenge={challenge}
+                                        onClick={() => handleChallengeClick(challenge)}
+                                        preAssessmentCompleted={preAssessmentStatuses[challenge.id]}
+                                        postAssessmentCompleted={postAssessmentStatuses[challenge.id]}
+                                    />
                                 </div>
-                            )}
+                            ))}
 
-                            {/* Main Quests */}
-                            <div className="theme-bg-secondary border theme-border rounded-lg p-6">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h2 className="text-lg font-bold theme-text-primary tracking-wider flex items-center gap-2">
-                                        <span className="text-cyan-600 dark:text-cyan-400">&gt;_</span> CHALLENGE
-                                    </h2>
-                                    <button className="px-3 py-1 bg-cyan-100 dark:bg-cyan-900/20 border border-cyan-500/30 text-cyan-600 dark:text-cyan-400 text-xs font-bold rounded hover:bg-cyan-200 dark:hover:bg-cyan-900/40 transition-colors">
-                                        VIEW ALL
-                                    </button>
+                        {/* Then Available */}
+                        {mainChallenges
+                            .filter(c => !preAssessmentStatuses[c.id])
+                            .map(challenge => (
+                                <ChallengeCard
+                                    key={challenge.id}
+                                    challenge={challenge}
+                                    onClick={() => handleChallengeClick(challenge)}
+                                    preAssessmentCompleted={preAssessmentStatuses[challenge.id]}
+                                    postAssessmentCompleted={postAssessmentStatuses[challenge.id]}
+                                />
+                            ))}
+
+                        {/* Then Completed (faded/at the end) */}
+                        {mainChallenges
+                            .filter(c => postAssessmentStatuses[c.id])
+                            .map(challenge => (
+                                <div key={challenge.id} className="opacity-60 hover:opacity-100 transition-opacity">
+                                    <ChallengeCard
+                                        challenge={challenge}
+                                        onClick={() => handleChallengeClick(challenge)}
+                                        preAssessmentCompleted={preAssessmentStatuses[challenge.id]}
+                                        postAssessmentCompleted={postAssessmentStatuses[challenge.id]}
+                                    />
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {mainChallenges.map(challenge => (
-                                        <ChallengeCard
-                                            key={challenge.id}
-                                            challenge={challenge}
-                                            onClick={() => handleChallengeClick(challenge)}
-                                            preAssessmentCompleted={preAssessmentStatuses[challenge.id]}
-                                            postAssessmentCompleted={postAssessmentStatuses[challenge.id]}
-                                        />
-                                    ))}
-                                    {mainChallenges.length === 0 && (
-                                        <div className="col-span-full text-center py-8 theme-text-muted text-sm">
-                                            No main quests available.
-                                        </div>
-                                    )}
-                                </div>
+                            ))}
+
+                        {mainChallenges.length === 0 && (
+                            <div className="col-span-full text-center py-12 theme-text-muted text-sm border theme-border border-dashed rounded-lg">
+                                <Activity size={32} className="mx-auto mb-3 opacity-20" />
+                                <p>No missions available at this time.</p>
                             </div>
-                        </div>
-
-                        {/* Right Column: Sidebar (1 col) */}
-                        <div className="space-y-6 sticky top-24 self-start">
-                            {/* Career Quick View */}
-                            <CareerPath userId={user?.id} compact={true} />
-                        </div>
+                        )}
                     </div>
-                )}
+                </div>
 
+                {/* Modals */}
                 {showPreAssessment && preAssessmentScenario && (
                     <PreAssessmentModal
                         scenario={preAssessmentScenario}
@@ -499,8 +401,22 @@ export const EmployeeDashboard: React.FC = () => {
                         challenge={selectedChallenge}
                         onClose={() => setSelectedChallenge(null)}
                         onSolve={() => {
-                            // Refresh challenges or update state
                             fetchChallenges();
+                        }}
+                    />
+                )}
+
+                {showPersonalizedAssessment && user?.id && (
+                    <PersonalizedAssessmentModal
+                        userId={user.id}
+                        userJobTitle={profileStats?.jobTitle}
+                        onClose={() => setShowPersonalizedAssessment(false)}
+                        onComplete={(score, skills) => {
+                            console.log('Assessment completed', score, skills);
+                            fetchProfileStats();
+                            // Possibly fetch challenges again if the assessment generated one?
+                            fetchChallenges();
+                            setShowPersonalizedAssessment(false);
                         }}
                     />
                 )}
