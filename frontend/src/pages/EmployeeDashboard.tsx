@@ -7,7 +7,7 @@ import { ChallengeCard } from '../components/ChallengeCard';
 import { ChallengeModal } from '../components/ChallengeModal';
 import { PreAssessmentModal } from '../components/PreAssessmentModal';
 import { PostAssessmentModal } from '../components/PostAssessmentModal';
-import { CareerPath, CareerData } from '../components/CareerPath';
+import { CareerPath } from '../components/CareerPath';
 import { PersonalizedAssessmentModal } from '../components/PersonalizedAssessmentModal';
 import { API_BASE_URL } from '../config';
 import { fetchWithRetry } from '../utils/fetchWithRetry';
@@ -29,8 +29,7 @@ export const EmployeeDashboard: React.FC = () => {
     // State
     const [mainChallenges, setMainChallenges] = useState<any[]>([]);
     const [selectedChallenge, setSelectedChallenge] = useState<any | null>(null);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [careerData, setCareerData] = useState<CareerData | null>(null);
+
 
     // Modals state
     const [showPreAssessment, setShowPreAssessment] = useState(false);
@@ -91,22 +90,7 @@ export const EmployeeDashboard: React.FC = () => {
         }
     };
 
-    const fetchCareerProgress = async () => {
-        if (!user?.id) return;
-        try {
-            const token = localStorage.getItem('token');
-            console.log('[EmployeeDashboard] Fetching career progress with retry...');
-            const response = await fetchWithRetry(`${API_BASE_URL}/api/career/progress/${user.id}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await response.json();
-            if (data.success) {
-                setCareerData(data.data);
-            }
-        } catch (err) {
-            console.error('[EmployeeDashboard] Error fetching career progress:', err);
-        }
-    };
+
 
     // Check pre-assessment status for a challenge
     const checkPreAssessmentStatus = async (scenarioId: string): Promise<boolean> => {
@@ -196,7 +180,7 @@ export const EmployeeDashboard: React.FC = () => {
             // Fetch profile stats first to get accurate ELO and completion counts
             await fetchProfileStats();
             await fetchChallenges();
-            await fetchCareerProgress();
+
         };
         loadData();
     }, [user?.id]);
@@ -409,7 +393,7 @@ export const EmployeeDashboard: React.FC = () => {
                 {showPersonalizedAssessment && user?.id && (
                     <PersonalizedAssessmentModal
                         userId={user.id}
-                        userJobTitle={profileStats?.jobTitle}
+                        userJobTitle={profileStats?.jobTitle || ''}
                         onClose={() => setShowPersonalizedAssessment(false)}
                         onComplete={(score, skills) => {
                             console.log('Assessment completed', score, skills);
