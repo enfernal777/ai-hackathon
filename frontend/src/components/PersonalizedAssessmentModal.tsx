@@ -42,6 +42,16 @@ export const PersonalizedAssessmentModal: React.FC<PersonalizedAssessmentModalPr
     const [showHint, setShowHint] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // New state for showing feedback before moving on
+    const [answerFeedback, setAnswerFeedback] = useState<{
+        correct: boolean;
+        feedback: string;
+        scoreObtained: number;
+        nextQuestion?: Question;
+        completed: boolean;
+        finalScore?: number;
+    } | null>(null);
+
     // Setup Handlers
     const handleGenerate = async () => {
         if (!goal.trim()) return;
@@ -72,10 +82,6 @@ export const PersonalizedAssessmentModal: React.FC<PersonalizedAssessmentModalPr
             setScenarioId(data.data.scenarioId);
             setQuestions([data.data.firstQuestion, ...new Array(data.data.totalQuestions - 1).fill(null)]); // Placeholder for length
 
-            // Actually, the API returns the FIRST question and creates the rest.
-            // Wait, my controller returns { firstQuestion, totalQuestions }.
-            // Start endpoint fetches them one by one.
-
             setStep('ASSESSMENT');
 
         } catch (err: any) {
@@ -87,8 +93,11 @@ export const PersonalizedAssessmentModal: React.FC<PersonalizedAssessmentModalPr
         }
     };
 
-    const handleSubmitAnswer = async () => {
-        if (!scenarioId || !currentAnswer.trim()) return;
+    const handleSubmitAnswer = async (forcedAnswer?: string, skipped: boolean = false) => {
+        if (!scenarioId) return;
+
+        const answerToSend = forcedAnswer || currentAnswer;
+        if (!skipped && !answerToSend.trim()) return;
 
         setIsSubmitting(true);
         try {
@@ -102,7 +111,8 @@ export const PersonalizedAssessmentModal: React.FC<PersonalizedAssessmentModalPr
                 body: JSON.stringify({
                     userId,
                     scenarioId,
-                    answer: currentAnswer
+                    answer: answerToSend,
+                    skipped
                 })
             });
 
@@ -111,26 +121,36 @@ export const PersonalizedAssessmentModal: React.FC<PersonalizedAssessmentModalPr
 
             const result = data.data; // { correct, feedback, scoreObtained, completed, finalScore, nextQuestion }
 
-            // Show immediate feedback if needed? For now we just move on.
-            if (result.completed) {
-                setScore(result.finalScore);
-                setStep('RESULTS');
-            } else {
-                setQuestions(prev => {
-                    const newQ = [...prev];
-                    newQ[currentQuestionIndex + 1] = result.nextQuestion;
-                    return newQ;
-                });
-                setCurrentQuestionIndex(prev => prev + 1);
-                setCurrentAnswer('');
-                setShowHint(false);
-            }
+            // Set feedback state to show result UI
+            setAnswerFeedback(result);
+
+            // If completed, we will likely show the feedback for the last question first, 
+            // then the user clicks "Finish" or "Next" to go to results.
 
         } catch (err: any) {
             console.error(err);
             setError(err.message);
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleNextQuestion = () => {
+        if (!answerFeedback) return;
+
+        if (answerFeedback.completed) {
+            setScore(answerFeedback.finalScore || 0);
+            setStep('RESULTS');
+        } else if (answerFeedback.nextQuestion) {
+            setQuestions(prev => {
+                const newQ = [...prev];
+                newQ[currentQuestionIndex + 1] = answerFeedback.nextQuestion!;
+                return newQ;
+            });
+            setCurrentQuestionIndex(prev => prev + 1);
+            setCurrentAnswer('');
+            setShowHint(false);
+            setAnswerFeedback(null);
         }
     };
 
@@ -241,6 +261,52 @@ export const PersonalizedAssessmentModal: React.FC<PersonalizedAssessmentModalPr
         const question = questions[currentQuestionIndex];
         if (!question) return <div>Loading question...</div>;
 
+        // FEEDBACK VIEW
+        if (answerFeedback) {
+            return (
+                <div className="space-y-6 text-center py-8 animate-fadeIn">
+                    <div className="mb-6">
+                        {answerFeedback.correct ? (
+                            <div className="inline-block p-4 rounded-full bg-green-500/20 text-green-400 mb-4">
+                                <Award size={48} />
+                            </div>
+                        ) : (
+                            <div className="inline-block p-4 rounded-full bg-yellow-500/20 text-yellow-400 mb-4">
+                                <Zap size={48} />
+                            </div>
+                        )}
+                        <h3 className={`text-2xl font-bold mb-2 ${answerFeedback.correct ? 'text-green-400' : 'text-yellow-400'}`}>
+                            {answerFeedback.correct ? 'Excellent!' : 'Good Effort!'}
+                        </h3>
+                        <p className="theme-text-secondary max-w-lg mx-auto">
+                            {answerFeedback.feedback}
+                        </p>
+                    </div>
+
+                    <div className="flex justify-center gap-8 mb-8">
+                        <div className="text-center">
+                            <div className="text-xs uppercase tracking-wider text-gray-500 mb-1">Score</div>
+                            <div className="text-xl font-bold theme-text-primary">{answerFeedback.scoreObtained}%</div>
+                        </div>
+                        <div className="text-center">
+                            <div className="text-xs uppercase tracking-wider text-gray-500 mb-1">Total Progress</div>
+                            <div className="text-xl font-bold theme-text-primary">
+                                {Math.round(((currentQuestionIndex + 1) / questions.length) * 100)}%
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={handleNextQuestion}
+                        className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-cyan-500 text-white font-bold rounded-lg hover:shadow-lg hover:scale-105 transition-all flex items-center gap-2 mx-auto"
+                    >
+                        {answerFeedback.completed ? 'Finish Assessment' : 'Next Question'} <ChevronRight size={18} />
+                    </button>
+                </div>
+            );
+        }
+
+        // QUESTION VIEW
         return (
             <div className="space-y-6">
                 {/* Header: Progress & XP */}
@@ -311,19 +377,29 @@ export const PersonalizedAssessmentModal: React.FC<PersonalizedAssessmentModalPr
 
                 {/* Footer Actions */}
                 <div className="flex items-center justify-between pt-4 border-t theme-border">
-                    <button
-                        onClick={() => setShowHint(!showHint)}
-                        className="theme-text-muted hover:text-yellow-400 transition-colors text-sm flex items-center gap-1"
-                    >
-                        {showHint ? 'Hide Hint' : 'Need a Hint?'}
-                    </button>
+                    <div className="flex gap-4">
+                        <button
+                            onClick={() => setShowHint(!showHint)}
+                            className="theme-text-muted hover:text-yellow-400 transition-colors text-sm flex items-center gap-1"
+                        >
+                            {showHint ? 'Hide Hint' : 'Need a Hint?'}
+                        </button>
+
+                        <button
+                            onClick={() => handleSubmitAnswer(undefined, true)}
+                            disabled={isSubmitting}
+                            className="theme-text-muted hover:text-red-400 transition-colors text-sm flex items-center gap-1"
+                        >
+                            I don't know
+                        </button>
+                    </div>
 
                     <button
-                        onClick={handleSubmitAnswer}
+                        onClick={() => handleSubmitAnswer()}
                         disabled={!currentAnswer || isSubmitting}
                         className="px-6 py-2 bg-gradient-to-r from-cyan-600 to-cyan-500 text-white font-bold rounded-lg hover:shadow-lg hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2"
                     >
-                        {isSubmitting ? <Loader size={18} className="animate-spin" /> : <>Next Question <ChevronRight size={18} /></>}
+                        {isSubmitting ? <Loader size={18} className="animate-spin" /> : <>Submit Answer <ChevronRight size={18} /></>}
                     </button>
                 </div>
             </div>

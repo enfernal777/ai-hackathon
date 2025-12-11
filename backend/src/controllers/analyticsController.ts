@@ -493,13 +493,11 @@ export const getAnalyticsOverview = async (req: AuthRequest, res: Response): Pro
                     total: data.total.size
                 });
             });
-            // Only include if there's data
-            if (skillsList.some(s => s.total > 0)) {
-                skillHeatmap.push({
-                    name: dept,
-                    skills: skillsList.filter(s => s.total > 0)
-                });
-            }
+            // Always include if department exists (even if 0 data)
+            skillHeatmap.push({
+                name: dept,
+                skills: skillsList.filter(s => s.total > 0)
+            });
         });
 
         console.log('[Heatmap Debug] allSkills:', allSkills);

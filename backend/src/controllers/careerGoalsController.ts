@@ -422,9 +422,14 @@ export const generateSelfAssessment = async (req: AuthRequest, res: Response): P
                         .insert({
                             title: `Self-Assessment: ${topic}`,
                             scenario_text: description || `Auto-generated assessment for ${topic}`,
+                            task: `Complete this self-assessment to evaluate your proficiency in ${topic}.`,
                             category: 'self-assessment',
                             skill: topic,
-                            difficulty: 'Intermediate',
+                            difficulty: 'Normal',
+                            rubric: {
+                                criteria: ['Understanding of core concepts', 'Practical application', 'Problem-solving ability'],
+                                ideal_response_keywords: [topic.toLowerCase(), 'analysis', 'solution']
+                            },
                             is_personalized: true,
                             status: 'published'
                         })

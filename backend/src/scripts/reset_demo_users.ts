@@ -552,7 +552,8 @@ async function generateAssessmentHistory(userIdMap: Map<string, string>): Promis
                                 weaknesses: level === 'Low' ? ['Needs practice'] : level === 'Medium' ? ['Room for improvement'] : []
                             }),
                             created_at: daysAgo(randomInRange(1, 300)),
-                            user_response: 'Simulated Response'
+                            user_response: 'Simulated Response',
+                            completed: true
                         });
                         assessmentsGenerated++;
                     }
@@ -599,7 +600,8 @@ async function generateAssessmentHistory(userIdMap: Map<string, string>): Promis
                     difficulty: scenario.difficulty || 'Medium',
                     feedback: JSON.stringify({ strengths: [], weaknesses: [] }),
                     created_at: daysAgo(daysFromNow),
-                    user_response: 'Standard Assessment Response'
+                    user_response: 'Standard Assessment Response',
+                    completed: true
                 });
                 assessmentsGenerated++;
             }
@@ -656,7 +658,8 @@ async function generateAssessmentHistory(userIdMap: Map<string, string>): Promis
                     difficulty: 'Hard',
                     feedback: JSON.stringify({ strengths: ['Great personalized work'], weaknesses: [] }),
                     created_at: daysAgo(daysFromNow),
-                    user_response: 'Personalized Assessment Response'
+                    user_response: 'Personalized Assessment Response',
+                    completed: true
                 });
             }
         }

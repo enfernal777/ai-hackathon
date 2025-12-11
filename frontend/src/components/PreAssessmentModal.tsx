@@ -58,7 +58,7 @@ export const PreAssessmentModal: React.FC<PreAssessmentModalProps> = ({ scenario
     const [error, setError] = useState<string>('');
     const [showXPAnimation, setShowXPAnimation] = useState<boolean>(false);
     const [conversationMessages, setConversationMessages] = useState<ConversationMessage[]>([]);
-    
+
     // ELO Animation state
     const [showEloAnimation, setShowEloAnimation] = useState<boolean>(false);
     const [eloChange, setEloChange] = useState<number>(0);
@@ -254,7 +254,7 @@ export const PreAssessmentModal: React.FC<PreAssessmentModalProps> = ({ scenario
                 setTotalXPEarned(prev => prev + currentXP);
                 setShowXPAnimation(true);
                 setTimeout(() => setShowXPAnimation(false), 1500);
-                
+
                 // Calculate ELO gain based on score (no deduction in pre-assessment)
                 let eloGain = 0;
                 let message = '';
@@ -268,7 +268,7 @@ export const PreAssessmentModal: React.FC<PreAssessmentModalProps> = ({ scenario
                     eloGain = 5;
                     message = '✓ Good Work!';
                 }
-                
+
                 setEloChange(eloGain);
                 setEloMessage(message);
                 setShowEloAnimation(true);
@@ -342,7 +342,7 @@ export const PreAssessmentModal: React.FC<PreAssessmentModalProps> = ({ scenario
                         </div>
                     </div>
                 )}
-                
+
                 {/* ELO Animation Overlay - Only gains in pre-assessment */}
                 {showEloAnimation && eloChange > 0 && (
                     <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
@@ -398,7 +398,7 @@ export const PreAssessmentModal: React.FC<PreAssessmentModalProps> = ({ scenario
                                         className="px-6 py-3 theme-bg-secondary hover:bg-white/10 border theme-border theme-text-primary font-bold rounded-lg transition-all disabled:opacity-50 group"
                                     >
                                         <span className="group-hover:scale-105 inline-block transition-transform">
-                                            🆕 New Territory
+                                            🆕 New to Me
                                         </span>
                                     </button>
                                     <button
